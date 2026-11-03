@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./Backend-ProjetoAgenda
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/agenda
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_H2_CONSOLE_ENABLED: "false"
+    volumes:
+      - dados-h2:/data
+
+  frontend:
+    build: ./Frontend-ProjetoAgenda
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  dados-h2:
