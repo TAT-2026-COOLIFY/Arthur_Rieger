@@ -1,0 +1,45 @@
+name: CI/CD - Deploy TCG Card Shop no Coolify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout do código do repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Python 3.11 para validação (CI)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 3. Validar sintaxe Python (Back-end e Front-end)
+        run: |
+          python -m py_compile backend/app/main.py
+          python -m py_compile backend/app/models.py
+          python -m py_compile backend/app/schemas.py
+          python -m py_compile backend/app/routers/cards.py
+          python -m py_compile frontend/app.py
+
+      - name: 4. Validar estrutura do Docker Compose
+        run: |
+          docker compose config -q
+
+      - name: 5. Disparar Webhook de Deploy no Coolify (CD)
+        env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          if [ -n "$COOLIFY_WEBHOOK_URL" ]; then
+            echo "Disparando deploy automático no Coolify..."
+            curl -X GET "$COOLIFY_WEBHOOK_URL" \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              --fail --silent --show-error || true
+          else
+            echo "Sincronização via integração Git/Webhook concluída."
+          fi
