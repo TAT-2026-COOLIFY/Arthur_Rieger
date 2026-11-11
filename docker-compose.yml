@@ -5,8 +5,8 @@ services:
     build: ./backend
     container_name: tcg_backend
     restart: always
-    ports:
-      - "8000:8000"
+    # Removemos a linha 'ports' do backend porque o front-end conversa 
+    # com ele pela rede interna do docker através de http://backend:8000
     volumes:
       - backend_data:/app/data
     environment:
@@ -17,7 +17,7 @@ services:
     container_name: tcg_frontend
     restart: always
     ports:
-      - "8501:8501"
+      - "8501:8501" # Mantemos apenas o Streamlit para você acessar a interface web
     environment:
       - API_URL=http://backend:8000
     depends_on:
